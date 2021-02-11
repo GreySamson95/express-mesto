@@ -1,7 +1,7 @@
 const path = require('path');
 const getDataInfo = require('../helpers/helpers');
 
-const dataUsersPath = path.join(__dirname, '../data/users.json');
+const dataUsersPath = path.join(__dirname, '..', 'data', 'users.json');
 
 const getUsers = (req, res) => getDataInfo(dataUsersPath)
   .then((users) => { res.status(200).send(users); })
@@ -15,6 +15,6 @@ const getUser = (req, res) => getDataInfo(dataUsersPath)
     }
     return res.status(200).send(user);
   })
-  .catch(() => { res.status(400).send({ message: 'Что-то пошло не так' }); });
+  .catch(() => { res.status(404).send({ message: 'Что-то пошло не так' }); });
 
 module.exports = { getUsers, getUser };

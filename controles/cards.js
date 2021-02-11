@@ -8,7 +8,7 @@ const getCards = (req, res) => getDataInfo(dataCardsPath)
     res.send(cards);
   })
   .catch(() => {
-    res.status(500).send({ mesage: 'Файл с данными не найден' });
+    res.status(500).send({ message: 'Файл с данными не найден' });
   });
 
 module.exports = getCards;

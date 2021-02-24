@@ -1,14 +1,92 @@
-const path = require('path');
-const getDataInfo = require('../helpers/helpers');
+const Card = require('../models/card');
 
-const dataCardsPath = path.join(__dirname, '../data/cards.json');
+const getCards = (req, res) => {
+  Card.find({}).populate('owner')
+    .then((cards) => {
+      res.send(cards);
+    })
+    .catch(() => {
+      res.status(500).send({ message: 'Ошибка на стороне сервера' });
+    });
+};
 
-const getCards = (req, res) => getDataInfo(dataCardsPath)
-  .then((cards) => {
-    res.send(cards);
-  })
-  .catch(() => {
-    res.status(500).send({ message: 'Файл с данными не найден' });
-  });
+const getCard = (req, res) => {
+  Card.findById(req.params._id)
+    .then((card) => {
+      return res.send({ card });
+    })
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        res.status(404).send({ message: 'Карточка не найдена' });
+      } else {
+        res.status(500).send({ message: 'Ошибка на стороне сервера' });
+      }
+    });
+};
 
-module.exports = getCards;
+const createCard = (req, res) => {
+  const { name, link } = req.body;
+  const owner = req.user._id;
+  Card.create({ name, link, owner })
+    .then((card) => { res.send({ body: card }); })
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        res.status(400).send({ message: 'Некорректные данные' });
+      } else {
+        res.status(500).send({ message: 'Ошибка на стороне сервера' });
+      }
+    });
+};
+
+const deleteCard = (req, res) => {
+  Card.findByIdAndRemove(req.params._id)
+    .then((card) => { res.send({ data: card }); })
+    .catch((err) => {
+      if (err.name === 'Error') {
+        res.status(404).send({ message: 'Карточка не найдена' });
+      } else {
+        res.status(500).send({ message: 'Ошибка на стороне сервера' });
+      }
+    });
+};
+
+const likeCard = (req, res) => {
+  Card.findByIdAndUpdate(
+    req.params.cardId,
+    { $addToSet: { likes: req.user._id } },
+    { new: true },
+  )
+    .then((card) => { res.send({ data: card }); })
+    .catch((err) => {
+      if (err.name === 'Error') {
+        res.status(404).send({ message: 'Карточка не найдена' });
+      } else {
+        res.status(500).send({ message: 'Ошибка на стороне сервера' });
+      }
+    });
+};
+
+const dislikeCard = (req, res) => {
+  Card.findByIdAndUpdate(
+    req.params.cardId,
+    { $pull: { likes: req.user._id } },
+    { new: true },
+  )
+    .then((card) => { res.send({ data: card }); })
+    .catch((err) => {
+      if (err.name === 'Error') {
+        res.status(404).send({ message: 'Карточка не найдена' });
+      } else {
+        res.status(500).send({ message: 'Ошибка на стороне сервера' });
+      }
+    });
+};
+
+module.exports = {
+  getCards,
+  getCard,
+  createCard,
+  deleteCard,
+  likeCard,
+  dislikeCard,
+};

@@ -9,14 +9,11 @@ const getUsers = (req, res) => {
 };
 
 const getUser = (req, res) => {
-  const { id } = req.params;
-  User.findById({ _id: id })
-    .then((user) => {
-      return res.send({ user });
-    })
+  User.findById(req.params._id)
+    .then((user) => res.status(200).send({ data: user }))
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(404).send({ message: 'Нет пользователя с таким id' });
+        res.status(400).send({ message: 'Нет пользователя с таким id' });
       } else {
         res.status(500).send({ message: 'Ошибка на стороне сервера' });
       }
@@ -25,11 +22,10 @@ const getUser = (req, res) => {
 
 const postUser = (req, res) => {
   const { name, about, avatar } = req.body;
-
   User.create({ name, about, avatar })
-    .then((user) => { res.send({ body: user }); })
+    .then((user) => { res.status(200).send({ user }); })
     .catch((err) => {
-      if (err.name === 'ValidationCastError') {
+      if (err.name === 'ValidationError') {
         res.status(400).send({ message: 'Некорректно введенные данные' });
       } else {
         res.status(500).send({ message: 'Ошибка на стороне сервера' });
@@ -39,9 +35,7 @@ const postUser = (req, res) => {
 
 const getMe = (req, res) => {
   User.findById(req.user._id)
-    .then((user) => {
-      return res.send({ user });
-    })
+    .then((user) => res.send({ user }))
     .catch(() => {
       res.status(500).send({ message: 'Ошибка на стороне сервера' });
     });
@@ -60,7 +54,7 @@ const updateUser = (req, res) => {
   )
     .then((user) => { res.send({ data: user }); })
     .catch((err) => {
-      if (err.name === 'ValidationCastError') {
+      if (err.name === 'ValidationError') {
         res.status(400).send({ message: 'Некорректно введенные данные' });
       } else {
         res.status(500).send({ message: 'Ошибка на стороне сервера' });
@@ -81,7 +75,7 @@ const updateAvatar = (req, res) => {
   )
     .then((user) => { res.send({ data: user }); })
     .catch((err) => {
-      if (err.name === 'ValidationCastError') {
+      if (err.name === 'ValidationError') {
         res.status(400).send({ message: 'Некорректно введенные данные' });
       } else {
         res.status(500).send({ message: 'Ошибка на стороне сервера' });

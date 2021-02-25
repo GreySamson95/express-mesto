@@ -3,7 +3,7 @@ const Card = require('../models/card');
 const getCards = (req, res) => {
   Card.find({}).populate('owner')
     .then((cards) => {
-      res.send(cards);
+      res.status(200).send(cards);
     })
     .catch(() => {
       res.status(500).send({ message: 'Ошибка на стороне сервера' });
@@ -12,12 +12,10 @@ const getCards = (req, res) => {
 
 const getCard = (req, res) => {
   Card.findById(req.params._id)
-    .then((card) => {
-      return res.send({ card });
-    })
+    .then((card) => res.status(200).send({ card }))
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(404).send({ message: 'Карточка не найдена' });
+        res.status(400).send({ message: 'Карточка не найдена' });
       } else {
         res.status(500).send({ message: 'Ошибка на стороне сервера' });
       }
@@ -40,13 +38,17 @@ const createCard = (req, res) => {
 
 const deleteCard = (req, res) => {
   Card.findByIdAndRemove(req.params._id)
-    .then((card) => { res.send({ data: card }); })
-    .catch((err) => {
-      if (err.name === 'Error') {
-        res.status(404).send({ message: 'Карточка не найдена' });
-      } else {
-        res.status(500).send({ message: 'Ошибка на стороне сервера' });
+    .then((card) => {
+      if (!card) {
+        return res.status(400).send({ message: 'Карточка не найдена' });
       }
+      return res.status(200).send({ data: card });
+    })
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        return res.status(400).send({ message: 'Карточка не найдена' });
+      }
+      return res.status(500).send({ message: 'Ошибка на стороне сервера' });
     });
 };
 
@@ -56,10 +58,15 @@ const likeCard = (req, res) => {
     { $addToSet: { likes: req.user._id } },
     { new: true },
   )
-    .then((card) => { res.send({ data: card }); })
+    .then((card) => {
+      if (!card) {
+        return res.status(404).send({ message: 'Карточка не найдена' });
+      }
+      return res.status(200).send({ data: card });
+    })
     .catch((err) => {
-      if (err.name === 'Error') {
-        res.status(404).send({ message: 'Карточка не найдена' });
+      if (err.name === 'CastError') {
+        res.status(400).send({ message: 'Карточка не найдена' });
       } else {
         res.status(500).send({ message: 'Ошибка на стороне сервера' });
       }
@@ -72,10 +79,15 @@ const dislikeCard = (req, res) => {
     { $pull: { likes: req.user._id } },
     { new: true },
   )
-    .then((card) => { res.send({ data: card }); })
+    .then((card) => {
+      if (!card) {
+        return res.status(404).send({ message: 'Карточка не найдена' });
+      }
+      return res.status(200).send({ data: card });
+    })
     .catch((err) => {
-      if (err.name === 'Error') {
-        res.status(404).send({ message: 'Карточка не найдена' });
+      if (err.name === 'CastError') {
+        res.status(400).send({ message: 'Карточка не найдена' });
       } else {
         res.status(500).send({ message: 'Ошибка на стороне сервера' });
       }

@@ -10,7 +10,12 @@ const getUsers = (req, res) => {
 
 const getUser = (req, res) => {
   User.findById(req.params._id)
-    .then((user) => res.status(200).send({ data: user }))
+    .then((user) => {
+      if (!user) {
+        return res.status(404).send({ message: 'Нет пользователя с таким id' });
+      }
+      return res.status(200).send({ data: user });
+    })
     .catch((err) => {
       if (err.name === 'CastError') {
         res.status(400).send({ message: 'Нет пользователя с таким id' });
@@ -54,8 +59,8 @@ const updateUser = (req, res) => {
   )
     .then((user) => { res.send({ data: user }); })
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(400).send({ message: 'Некорректно введенные данные' });
+      if (err.name === 'CastError') {
+        res.status(400).send({ message: 'Некорректно введенны данные' });
       } else {
         res.status(500).send({ message: 'Ошибка на стороне сервера' });
       }
@@ -75,8 +80,8 @@ const updateAvatar = (req, res) => {
   )
     .then((user) => { res.send({ data: user }); })
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(400).send({ message: 'Некорректно введенные данные' });
+      if (err.name === 'CastError') {
+        res.status(400).send({ message: 'Некорректно введенны данные' });
       } else {
         res.status(500).send({ message: 'Ошибка на стороне сервера' });
       }

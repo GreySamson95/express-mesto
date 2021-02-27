@@ -1,18 +1,28 @@
 const Card = require('../models/card');
 
+const checkDataError = (res, err) => {
+  if ((err.name === 'ValidationError') || (err.name === 'CastError')) {
+    return res.status(400).send({ message: `Переданы некоректные/ неполные данные: ${err}` });
+  }
+  return res.status(500).send({ message: `Ошибка на стороне сервера: ${err}` });
+};
+
 const getCards = (req, res) => {
   Card.find({}).populate('owner')
     .then((cards) => {
       res.status(200).send(cards);
     })
-    .catch(() => {
-      res.status(500).send({ message: 'Ошибка на стороне сервера' });
-    });
+    .catch((err) => checkDataError(res, err));
 };
 
 const getCard = (req, res) => {
   Card.findById(req.params._id)
-    .then((card) => res.status(200).send({ card }))
+    .then((card) => {
+      if (!card) {
+        return res.status(400).send({ message: 'Карточка не найдена' });
+      }
+      return res.status(200).send({ data: card });
+    })
     .catch((err) => {
       if (err.name === 'CastError') {
         res.status(400).send({ message: 'Карточка не найдена' });
@@ -27,29 +37,18 @@ const createCard = (req, res) => {
   const owner = req.user._id;
   Card.create({ name, link, owner })
     .then((card) => { res.send({ body: card }); })
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(400).send({ message: 'Некорректные данные' });
-      } else {
-        res.status(500).send({ message: 'Ошибка на стороне сервера' });
-      }
-    });
+    .catch((err) => checkDataError(res, err));
 };
 
 const deleteCard = (req, res) => {
   Card.findByIdAndRemove(req.params._id)
     .then((card) => {
       if (!card) {
-        return res.status(404).send({ message: 'Карточка не найдена' });
+        return res.status(400).send({ message: 'Карточка не найдена' });
       }
       return res.status(200).send({ data: card });
     })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        return res.status(400).send({ message: 'Карточка не найдена' });
-      }
-      return res.status(500).send({ message: 'Ошибка на стороне сервера' });
-    });
+    .catch((err) => checkDataError(res, err));
 };
 
 const likeCard = (req, res) => {
@@ -64,13 +63,7 @@ const likeCard = (req, res) => {
       }
       return res.status(200).send({ data: card });
     })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(400).send({ message: 'Карточка не найдена' });
-      } else {
-        res.status(500).send({ message: 'Ошибка на стороне сервера' });
-      }
-    });
+    .catch((err) => checkDataError(res, err));
 };
 
 const dislikeCard = (req, res) => {
@@ -85,13 +78,7 @@ const dislikeCard = (req, res) => {
       }
       return res.status(200).send({ data: card });
     })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(400).send({ message: 'Карточка не найдена' });
-      } else {
-        res.status(500).send({ message: 'Ошибка на стороне сервера' });
-      }
-    });
+    .catch((err) => checkDataError(res, err));
 };
 
 module.exports = {

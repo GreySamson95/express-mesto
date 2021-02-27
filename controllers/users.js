@@ -1,5 +1,12 @@
 const User = require('../models/user');
 
+const checkDataError = (res, err) => {
+  if ((err.name === 'ValidationError') || (err.name === 'CastError')) {
+    return res.status(400).send({ message: `Переданы некоректные/ неполные данные: ${err}` });
+  }
+  return res.status(500).send({ message: `Ошибка на стороне сервера: ${err}` });
+};
+
 const getUsers = (req, res) => {
   User.find({})
     .then((users) => { res.send(users); })
@@ -29,13 +36,7 @@ const postUser = (req, res) => {
   const { name, about, avatar } = req.body;
   User.create({ name, about, avatar })
     .then((user) => { res.status(200).send({ user }); })
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(400).send({ message: 'Некорректно введенные данные' });
-      } else {
-        res.status(500).send({ message: 'Ошибка на стороне сервера' });
-      }
-    });
+    .catch((err) => checkDataError(res, err));
 };
 
 const getMe = (req, res) => {
@@ -58,13 +59,7 @@ const updateUser = (req, res) => {
     },
   )
     .then((user) => { res.send({ data: user }); })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(400).send({ message: 'Некорректно введенны данные' });
-      } else {
-        res.status(500).send({ message: 'Ошибка на стороне сервера' });
-      }
-    });
+    .catch((err) => checkDataError(res, err));
 };
 
 const updateAvatar = (req, res) => {
@@ -79,13 +74,7 @@ const updateAvatar = (req, res) => {
     },
   )
     .then((user) => { res.send({ data: user }); })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(400).send({ message: 'Некорректно введенны данные' });
-      } else {
-        res.status(500).send({ message: 'Ошибка на стороне сервера' });
-      }
-    });
+    .catch((err) => checkDataError(res, err));
 };
 
 module.exports = {
